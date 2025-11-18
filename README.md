@@ -24,7 +24,7 @@ Including six sections:
 3. STEP3_GRNs_and_Heatmap_Generation：Including gene regulatory network mapping of the macula and gene expression heatmaps of the macula.
 4. STEP4_Gene_Enrichment_Analysis: Including gene enrichment qnalysis.
 5. STEP5_Network_Propensity_Matching：Including specific steps for propensity matching.
-6. STEP6_Construt_Specific_GRNs：This includes constructing corresponding matching networks using the matched cell populations, as well as constructing differential networks.
+6. STEP6_Construt_Specific_GRNs：This includes constructing corresponding matching networks using the matched cell populations, as well as constructing Specific networks.
 7. function_real: Provide computational services for the BLGGM model.
 ### Data
 1. annotations.tsv：Including relevan.t information about sampled cells is a crucial foundation for network propensity matching.
