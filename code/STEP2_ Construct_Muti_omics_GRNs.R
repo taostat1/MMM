@@ -216,7 +216,7 @@ Result <- MCMC_full(
 end_time <- Sys.time()
 runtime <- difftime(end_time, start_time, units = "mins")
 cat(paste0(ds_name, " MCMC runtime: ", round(runtime, 2), " minutes\n"))
-
+# MCMC runtime 8.43 mins
 
 # --------------------------
 # 8. Extract and save MR results

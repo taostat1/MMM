@@ -12,7 +12,7 @@ load("output/Matched_goal_expr_PR.RData")
 # Shared parameters (used for both datasets)
 num_iter <- 10000       # Total MCMC iterations
 num_save <- 5000        # Iterations to retain (post-burn-in)
-protein_file <- "protein_matrix.csv"  # Protein interaction matrix
+protein_file <- "data/protein_matrix.csv"  # Protein interaction matrix
 ssp_v0 <- 0.02          # Spike-slab prior parameters
 ssp_v1 <- 1
 ssp_l <- 1
@@ -33,11 +33,10 @@ protein_mat[protein_mat == 0] <- 0
 
 
 # --------------------------
-# 2. 循环处理每个PR专属群（PR1~PR4）
+# 2. Process each PR-specific group (PR1 to PR4) in a loop.
 # --------------------------
 pr_network_results <- list()
-# PR群名称（对应MR1~MR4的专属PR群）
-pr_classes <- names(matched_goal_expr_PR)  # 如c("1","2","3","4")
+pr_classes <- names(matched_goal_expr_PR)  
 pr_class <- "1"
 
 K_pr <- 1
@@ -205,14 +204,6 @@ for (pr_class in pr_classes) {
   
   # Save results 
   pr_network_results[[pr_class]] <- edge_est
-  result_file <- paste0(pr_class, "Pr_Data_result_with_protein.RData")
-  save(
-    list = c("X", "invcov_est", "edge_est", "group_est", "lam0_est", 
-             "lam1_est", "mu_est", "Pi_est", "theta_est", "protein_mat"),
-    file = result_file
-  )
-  cat(paste0(pr_class, " results saved to: ", result_file, "\n"))
-  
   
   # --------------------------
   # 9. Generate and save PR cell type-specific network plots
@@ -245,7 +236,7 @@ for (pr_class in pr_classes) {
     node_color <- rep("#EC7357", nrow(edge_data))  # Node color (orange, consistent with original settings)
     
     # Save as PDF (MR-specific filename)
-    pdf_file <- paste0(pr_class, "pr_edge", num, ".pdf")
+    pdf_file <- paste0("output/figure/",paste0(pr_class, "pr_edge", num, ".pdf"))
     pdf(file = pdf_file, width = 14, height = 12)  # Set plot dimensions
     
     # Plot network
@@ -278,56 +269,57 @@ for (pr_class in pr_classes) {
 
 
 # --------------------------
-# 3. 保存所有PR群的网络结果（便于后续与MR对比）
+# 3. Save all PR group network results 
 # --------------------------
 save(
   pr_network_results,
-  file = "PR_4Groups_Network_Results.RData"
+  file = "output/PR_4Groups_Network_Results.RData"
 )
 
+#########################Constructing Specific GRNs######################################################
 # Load grouped data
-load("MRData_result_with_protein.RData")
+load("output/MRData_result_with_protein.RData")
 mr_edge_est <-edge_est
 
 i <- 1
 edge_diff_list <- list()
 for (i in pr_classes) {
-  mr_edge <- mr_edge_est[,, as.numeric(i)]             # MR对应子类的邻接矩阵
-  pr_edge <- pr_network_results[[i]][,,1]  # PR对应子类的邻接矩阵
+  mr_edge <- mr_edge_est[,, as.numeric(i)]            
+  pr_edge <- pr_network_results[[i]][,,1]  
   
-  # 计算差值（MR - PR）
+  # Calculate the difference (MR - PR)
   edge_diff <- mr_edge - pr_edge
   
-  # 存储包含配对信息的差值数据
+  # Store the difference data containing pairing information
   edge_diff_list[[i]] <- list(
     pair_id = i,
     diff_matrix = edge_diff
   )
 }
 
-cat(sprintf("\n✅ 共计算%d对MR-PR邻接矩阵差值\n", length(edge_diff_list)))
+cat(sprintf("\n Calculated %d pairs of MR-PR adjacency matrix differences\n", length(edge_diff_list)))
 
 
 # --------------------------
-# 批量绘制所有配对的阈值化网络
+# Begin drawing the threshold network diagram
 # --------------------------
-cat("\n=== 开始绘制阈值化网络图 ===\n")
 
-diff_data_idx<- 1
-library(tidyverse)   # 如果你用了 dplyr 的 %>% 等函数
+
+diff_data_idx <- 1
+library(tidyverse)   
 library(igraph) 
+
 plot_network <- function(edge_data, prefix, num) {
-  # 初始化边列表（新增threshold_result列记录阈值处理结果）
   edge_list <- data.frame(
     from = character(),
     to = character(),
     lty = integer(),
-    value = numeric(),  # 原始值
-    threshold_result = character(),  # 阈值处理结果（新增）
+    value = numeric(),  
+    threshold_result = character(),  
     stringsAsFactors = FALSE
   )
   
-  # 遍历矩阵筛选符合阈值的边（上三角避免无向图重复边）
+  # Iterate through the matrix to filter edges meeting the threshold (using the upper triangle to avoid duplicate edges in undirected graphs)
   for (i in 1:length(goal_gene)) {
     for (j in i:length(goal_gene)) {
       val <- edge_data[i, j]
@@ -335,77 +327,76 @@ plot_network <- function(edge_data, prefix, num) {
         edge_list <- rbind(edge_list, data.frame(
           from = goal_gene[i], 
           to = goal_gene[j], 
-          lty = 1,  # 实线
-          value = val,  # 原始值
-          threshold_result = "1"  # 阈值处理结果：正相关且超过0.5
+          lty = 1,  # solid line
+          value = val,  
+          threshold_result = "1" # >0.5
         ))
       } else if (val < -0.5) {
         edge_list <- rbind(edge_list, data.frame(
           from = goal_gene[i], 
           to = goal_gene[j], 
-          lty = 2,  # 虚线
-          value = val,  # 原始值
-          threshold_result = "-1"  # 阈值处理结果：负相关且小于-0.5
+          lty = 2,  # dotted line
+          value = val,  
+          threshold_result = "-1"  # <-0.5
         ))
       }
     }
   }
   
-  # 容错：无符合条件的边则跳过
   if (nrow(edge_list) == 0) {
-    warning(paste0("无差值>0.5或<-0.5的边，跳过第", num, "个网络绘制和保存"))
+    warning(paste0("Edges with values > 0.5 or < -0.5 are absent; skipping plotting and saving for the ", num, "th network"))
     return(NULL)
   }
   
-  # 构建无向网络对象（使用goal_gene作为节点）
+  # Construct an undirected network object (using goal_gene as nodes)
   G_graph <- graph_from_data_frame(
     d = edge_list,
     directed = FALSE,
     vertices = data.frame(gene = goal_gene)
   )
   
-  # 设置圆形布局
+  # Set circular layout
   plot_layout <- layout.circle(G_graph)
   
-  # 定义输出文件路径
-  pdf_file <- paste0(prefix, "_edge", num, ".pdf")
-  csv_file <- paste0(prefix, "_edge", num, ".csv")  # CSV文件路径
+  # Define output file paths
+  pdf_file <- paste0("output/figure/",paste0(prefix, "_edge", num, ".pdf"))
+  csv_file <- paste0("output/",paste0(prefix, "_edge", num, ".csv"))  # CSV file path
   
-  # 保存为PDF并绘图（绘图部分不变）
+  # Save as PDF and plot (plotting parameters remain unchanged)
   pdf(file = pdf_file, width = 14, height = 12)
   plot(
     G_graph,
     layout = plot_layout,
-    vertex.label = V(G_graph)$gene,    # 节点label（基因名）
-    vertex.label.color = "#EC7357",    # 节点label颜色（橙色）
-    vertex.label.cex = 1.1,            # label大小
-    vertex.size = 8,                   # 节点大小
-    vertex.color = "white",            # 节点填充色
-    vertex.frame.color = "#030303",    # 节点边框色（黑色）
-    edge.lty = E(G_graph)$lty,         # 线型：1=实线（>0.5），2=虚线（<-0.5）
-    edge.color = "#030303",            # 边统一为黑色
-    edge.width = 2,                    # 边宽度
-    margin = c(1, 1, 1, 1)             # 边距
+    vertex.label = V(G_graph)$gene,    # Node labels (gene names)
+    vertex.label.color = "#EC7357",    # Node label color (orange)
+    vertex.label.cex = 1.1,            # Label size
+    vertex.size = 8,                   # Node size
+    vertex.color = "white",            # Node fill color
+    vertex.frame.color = "#030303",    # Node border color (black)
+    edge.lty = E(G_graph)$lty,         # Line type: 1=solid (>0.5), 2=dotted (<-0.5)
+    edge.color = "#030303",            # Edges uniformly black
+    edge.width = 2,                    # Edge width
+    margin = c(1, 1, 1, 1)             # Margins
   )
   dev.off()
   
-  # 保存边数据为CSV文件（包含新增的threshold_result列）
+  # Save edge data as CSV file (including the new threshold_result column)
   write.csv(edge_list, file = csv_file, row.names = FALSE)
   
-  cat(paste0("第", num, "个网络已保存至: ", pdf_file, "\n"))
-  cat(paste0("第", num, "个网络的边数据已保存至: ", csv_file, "\n"))
+  cat(paste0("The ", num, "th network has been saved to: ", pdf_file, "\n"))
+  cat(paste0("Edge data for the ", num, "th network has been saved to: ", csv_file, "\n"))
 }
 
 
-# 输出文件前缀（用于区分不同分析）
+# Output file prefix (to distinguish different analyses)
 output_prefix <- "Specific"
 
-# 从1到K循环绘图并保存数据
+# Loop from 1 to K to plot and save data
 for (num in 1:K) {
-  # 提取第num类的差值矩阵
+  # Extract the difference matrix for the num-th class
   current_diff_matrix <- edge_diff_list[[num]]$diff_matrix
   
-  # 调用绘图函数（同时保存CSV）
+  # Call the plotting function (saves CSV simultaneously)
   plot_network(
     edge_data = current_diff_matrix,
     prefix = output_prefix,
@@ -414,7 +405,7 @@ for (num in 1:K) {
 }
 
 plot_network_separate <- function(edge_data, prefix, num) {
-  # 初始化总边列表（保留原始逻辑）
+  # Initialize total edge list (retain original logic)
   edge_list <- data.frame(
     from = character(),
     to = character(),
@@ -424,7 +415,7 @@ plot_network_separate <- function(edge_data, prefix, num) {
     stringsAsFactors = FALSE
   )
   
-  # 遍历矩阵筛选符合阈值的边（上三角避免重复）
+  # Iterate through the matrix to filter edges meeting the threshold (upper triangle to avoid duplicates)
   for (i in 1:length(goal_gene)) {
     for (j in i:length(goal_gene)) {
       val <- edge_data[i, j]
@@ -432,7 +423,7 @@ plot_network_separate <- function(edge_data, prefix, num) {
         edge_list <- rbind(edge_list, data.frame(
           from = goal_gene[i], 
           to = goal_gene[j], 
-          lty = 1,  # 实线（正相关）
+          lty = 1,  # solid line (positive correlation)
           value = val,
           threshold_result = "1"
         ))
@@ -440,7 +431,7 @@ plot_network_separate <- function(edge_data, prefix, num) {
         edge_list <- rbind(edge_list, data.frame(
           from = goal_gene[i], 
           to = goal_gene[j], 
-          lty = 2,  # 虚线（负相关）
+          lty = 2,  # dashed line (negative correlation)
           value = val,
           threshold_result = "-1"
         ))
@@ -448,32 +439,32 @@ plot_network_separate <- function(edge_data, prefix, num) {
     }
   }
   
-  # 分离实线边和虚线边
-  solid_edges <- edge_list[edge_list$lty == 1, ]  # 实线（正相关）
-  dashed_edges <- edge_list[edge_list$lty == 2, ]  # 虚线（负相关）
+  # Separate solid edges and dashed edges
+  solid_edges <- edge_list[edge_list$lty == 1, ]  # solid lines (positive correlation)
+  dashed_edges <- edge_list[edge_list$lty == 2, ]  # dashed lines (negative correlation)
   
-  # 定义绘图和保存函数（内部子函数，避免重复代码）
+  # Define plotting and saving function (internal subfunction to avoid code duplication)
   plot_and_save <- function(edges, type_suffix, line_type) {
     if (nrow(edges) == 0) {
-      warning(paste0("无", type_suffix, "边（阈值外），跳过第", num, "个", type_suffix, "网络绘制"))
+      warning(paste0("No ", type_suffix, " edges (outside threshold); skipping plotting for the ", num, "th ", type_suffix, " network"))
       return(NULL)
     }
     
-    # 构建网络对象
+    # Construct network object
     G_graph <- graph_from_data_frame(
       d = edges,
       directed = FALSE,
       vertices = data.frame(gene = goal_gene)
     )
     
-    # 圆形布局
+    # Circular layout
     plot_layout <- layout.circle(G_graph)
     
-    # 文件名（加后缀区分）
-    pdf_file <- paste0(prefix, "_", type_suffix, "_edge", num, ".pdf")
-    csv_file <- paste0(prefix, "_", type_suffix, "_edge", num, ".csv")
+    # File names (with suffixes for distinction)
+    pdf_file <- paste0("output/figure/",paste0(prefix, "_", type_suffix, "_edge", num, ".pdf"))
+    csv_file <- paste0("output/",paste0(prefix, "_", type_suffix, "_edge", num, ".csv"))
     
-    # 绘图并保存PDF
+    # Plot and save as PDF
     pdf(file = pdf_file, width = 14, height = 12)
     plot(
       G_graph,
@@ -484,30 +475,30 @@ plot_network_separate <- function(edge_data, prefix, num) {
       vertex.size = 8,
       vertex.color = "white",
       vertex.frame.color = "#030303",
-      edge.lty = line_type,  # 固定当前类型的线型
+      edge.lty = line_type,  # Fixed line type for current edge category
       edge.color = "#030303",
       edge.width = 2,
       margin = c(1, 1, 1, 1)
     )
     dev.off()
     
-    # 保存CSV
+    # Save as CSV
     write.csv(edges, file = csv_file, row.names = FALSE)
     
-    cat(paste0("第", num, "个", type_suffix, "网络已保存至: ", pdf_file, "\n"))
-    cat(paste0("第", num, "个", type_suffix, "边数据已保存至: ", csv_file, "\n"))
+    cat(paste0("The ", num, "th ", type_suffix, " network has been saved to: ", pdf_file, "\n"))
+    cat(paste0("Edge data for the ", num, "th ", type_suffix, " network has been saved to: ", csv_file, "\n"))
   }
   
-  # 分别绘制实线和虚线网络
-  plot_and_save(solid_edges, type_suffix = "solid", line_type = 1)  # 实线（正相关）
-  plot_and_save(dashed_edges, type_suffix = "dashed", line_type = 2)  # 虚线（负相关）
+  # Plot and save solid and dashed edge networks separately
+  plot_and_save(solid_edges, type_suffix = "solid", line_type = 1)  # solid lines (positive correlation)
+  plot_and_save(dashed_edges, type_suffix = "dashed", line_type = 2)  # dashed lines (negative correlation)
 }
 
 
-# 输出文件前缀
+# Output file prefix
 output_prefix <- "Specific"
 
-# 循环调用新函数，分别输出实线和虚线网络
+# Loop to call the new function, outputting solid and dashed edge networks separately
 for (num in 1:K) {
   current_diff_matrix <- edge_diff_list[[num]]$diff_matrix
   plot_network_separate(
