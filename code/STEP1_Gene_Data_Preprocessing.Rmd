@@ -2,17 +2,11 @@
 title: "Gene Data Processing"
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-
-# Switch to your path
-knitr::opts_knit$set(root.dir = "F:/MMM-Bio/Data")
-```
-
 ```{r}
-if (!requireNamespace("BiocManager", quietly = TRUE))
-   install.packages("BiocManager")
-BiocManager::install("limma")
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  renv::install("BiocManager")  
+}
+renv::install("limma", repos = BiocManager::repositories())
 ```
 
 # Switching file addresses
@@ -20,15 +14,15 @@ BiocManager::install("limma")
 ```{r}
 rm(list=ls()) 
 ### Read mtx sparse matrices
-mt <- Matrix::readMM("counts.mtx")
+mt <- Matrix::readMM("../data/counts.mtx")
 dim(mt)# Rows are genes, columns are cells
 
 ### Read txt file gene names as sparse matrix row names
-gene_names<- read.table('gene_names.txt')
+gene_names<- read.table("../data/gene_names.txt")
 row.names(mt) <- gene_names[,1]
 
 ### Read the tsv file
-cell <- read.table("annotations.tsv",header = T)
+cell <- read.table("../data/annotations.tsv",header = T)
 colnames(mt) <- cell$Barcode
 ```
 
@@ -76,7 +70,7 @@ head(mt)
 ```{r}
 list <- c(rep("MR", 5121), rep("PR",4137),rep("PR",3444),rep("MR",3119),rep("PR",2505),rep("MR",1765)) %>% factor(., levels = c("PR", "MR"), ordered = F)
 head(list)
-list <- model.matrix(~factor(list)+0)  #把group设置成一个model matrix
+list <- model.matrix(~factor(list)+0) 
 colnames(list) <- c("CK", "Treat")
 ```
 
@@ -115,20 +109,11 @@ foldChange = 0.5
 # Results of screening for all differential genes
 All_diffSig <- diffsig[(diffsig$P.Value < padj&abs(diffsig$log2FC)>foldChange),]
 # Screening using uncorrected p-values
-write.csv(All_diffSig, "all.diffsig.csv")  ##输出差异基因数据集
+write.csv(All_diffSig, "../output/all.diffsig.csv")  #Output Differentially Expressed Gene Dataset
 ```
 
-7. Screening for up- and down-regulated genes
 
-```{r}
-diffup <-  All_diffSig[(All_diffSig$P.Value < padj & (All_diffSig$log2FC > foldChange)),]
-write.csv(diffup, "diffup.csv")
-#
-diffdown <- All_diffSig[(All_diffSig$P.Value < padj & (All_diffSig < -foldChange)),]
-write.csv(diffdown, "diffdown.csv")
-```
-
-8. Mapping volcanoes
+7. Mapping volcanoes
 
 ```{r}
 ## Load R package
@@ -145,7 +130,7 @@ data$group[(data$padj <= 0.05 & data$logFC < -1)] <- "Down"
 x_lim <- max(logFC,-logFC)
 
 # Start drawing
-pdf('volcano.pdf',width = 7,height = 6.5)  ## Output files
+pdf('../output/figure/volcano.pdf',width = 7,height = 6.5)  ## Output files
 label = subset(diffsig,P.Value <0.05 & abs(logFC) > 0.5)
 label1 = rownames(label)
 
@@ -177,7 +162,7 @@ row.names(goal_gene_mt)
 ```{r}
 # Calculate the proportion of values of 0 in each column
 zero_percent <- apply(goal_gene_mt, 2, function(x) mean(x == 0))
-write.csv(zero_percent, "Zero_percent.csv")
+write.csv(zero_percent, "../output/Zero_percent.csv")
 # Determine if the overall 50% threshold is exceeded
 threshold <- 0.5
 cols_to_keep <- which(zero_percent <= threshold)
@@ -185,7 +170,7 @@ cell_type<-cell[cols_to_keep,"Labels"]
 cell_MR<-cell[cols_to_keep,"PR_or_MR"]
 cols_to_MR<-which(cell$PR_or_MR=="Yes"&zero_percent <= threshold)
 cols_to_PR<-which(cell$PR_or_MR=="No"&zero_percent <= threshold)
-save(list=c("goal_gene_mt","goal_gene","mt","cell","cols_to_MR","cols_to_PR"), file = "goal_gene_mt.RData")
+save(list=c("goal_gene_mt","goal_gene","mt","cell","cols_to_MR","cols_to_PR"), file = "../output/goal_gene_mt.RData")
 # Combine the remaining columns into a new data frame
 new_mt <- goal_gene_mt[, cols_to_keep]
 MR_mt<-goal_gene_mt[, cols_to_MR]
@@ -196,19 +181,12 @@ PR_mt<-goal_gene_mt[, cols_to_PR]
 hist(zero_percent)
 ```
 
-```{r}
-# Save the filtered totals
-library(Matrix)
-X<-as.data.frame(as.matrix(new_mt))
-N<-dim(X)[1]
-save(list=c("X", "N","cell_type"), file = "Realdata.RData")
-```
 
 ```{r}
 # Save the filtered totals
 library(Matrix)
 X<-as.data.frame(as.matrix(new_mt))
-write.csv(X, "col_keep_data.csv")
+write.csv(X, "../output/col_keep_data.csv")
 ```
 
 ```{r}
@@ -217,7 +195,7 @@ library(Matrix)
 X<-MR_mt
 N<-dim(X)[2]
 cell_label<-cell[cols_to_MR,"Labels"]
-save(list=c("X", "N","cell_label"), file = "MRdata.RData")
+save(list=c("X", "N","cell_label"), file = "../output/MRdata.RData")
 ```
 
 ```{r}
@@ -226,5 +204,5 @@ library(Matrix)
 X<-PR_mt
 N<-dim(X)[2]
 cell_label<-cell[cols_to_PR,"Labels"]
-save(list=c("X", "N","cell_label"), file = "PRdata.RData")
+save(list=c("X", "N","cell_label"), file = "../output/PRdata.RData")
 ```

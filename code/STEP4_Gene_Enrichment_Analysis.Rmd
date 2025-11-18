@@ -1,0 +1,102 @@
+
+```{r Installation of databases such as clusterProfiler}
+
+# Since clusterProfiler is not stored in CRAN, the `install` command is not usable.
+# You must use BiocManager to install it.
+
+if (!require("BiocManager", quietly = TRUE))
+    renv::install("BiocManager")  
+
+# Database for GO analysis
+renv::install("Seqinfo",version = "3.22", update = FALSE, repos = BiocManager::repositories())
+renv::install("UCSC.utils",version = "3.22", update = FALSE, repos = BiocManager::repositories())
+renv::install("GenomeInfoDb",version = "3.22", update = FALSE, repos = BiocManager::repositories())# Depends on "Seqinfo," "UCSC.utils"
+
+renv::install("KEGGREST", update = FALSE, repos = BiocManager::repositories())
+renv::install("AnnotationDbi", update = FALSE, repos = BiocManager::repositories())
+renv::install(c("DOSE", "GO.db", "enrichplot"), update = FALSE, repos = BiocManager::repositories())
+
+renv::install("clusterProfiler", update = FALSE, repos = BiocManager::repositories())
+# Installation depends on the above packages
+
+
+# Download the Human Genome Database
+renv::install("org.Hs.eg.db",  repos = BiocManager::repositories())
+
+# Enrichment Analysis Plotting
+renv::install("GOplot",  repos = BiocManager::repositories())
+renv::install("enrichplot",  repos = BiocManager::repositories())
+
+```
+
+
+```{r Load software package}
+
+library(stringr)
+library(Seqinfo)
+library(UCSC.utils) 
+library(GenomeInfoDb)
+library(clusterProfiler)
+library(GOplot) # String Diagram, String Table Diagram, System Clustering Diagram
+library(enrichplot)
+library(ggplot2)
+
+```
+
+
+```{r Read gene SYMBOL}
+
+# Set the gene_symbol reading path
+gene_symbol <- read.csv("../output/all.diffsig.csv")
+
+```
+
+
+```{r Convert SYMBOL to ENTREZID}
+
+# Set as Human Genome Database
+GO_database <- 'org.Hs.eg.db' 
+
+# Begin converting SYMBOL to ENTREZID
+gene <- bitr(gene_symbol$ID,fromType = 'SYMBOL',toType = 'ENTREZID',
+             OrgDb = GO_database)
+
+```
+
+
+```{r GO Analysis}
+
+GO <- enrichGO(gene$ENTREZID, #GO enrichment analysis
+               OrgDb = GO_database,
+               keyType = "ENTREZID",#Set the gene ID type to be read
+               ont = "ALL",
+                #(ont is set to ALL, thus including Biological Process, Cellular Component,Mollecular Function)
+               pvalueCutoff = 0.05,#Set p-value threshold
+               qvalueCutoff = 0.05,#Set Q-value threshold
+               readable = T)
+
+```
+
+
+```{r Enriched Analysis Bubble Chart Complete}
+
+# Ensuring vertical axis labels don't wrap is crucial—use scale_y_discrete
+bubble_plot <- dotplot(GO, split = "ONTOLOGY") + 
+               facet_grid(ONTOLOGY ~ ., scale = "free", space = 'fixed') +
+               theme(axis.text.y = element_text(hjust = 1)) +
+               scale_y_discrete(labels = function(x) str_wrap(x, width = 50) )
+               # + theme(plot.margin = margin(0, 0, 0, 0))
+bubble_plot
+
+ggsave("../output/figure/bubble_all.pdf", plot = bubble_plot, width = 8, height = 10)
+
+```
+
+
+```{r View the results of the GO analysis}
+
+go_result <- GO@result
+
+```
+
+

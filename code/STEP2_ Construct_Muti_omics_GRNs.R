@@ -1,20 +1,22 @@
 rm(list=ls())  # Clear current environment variables
-# install.packages("rTRNG")
+renv::install("rTRNG")
+renv::install("RcppArmadillo")
 library("rTRNG")
-setwd("D:/MMM-Bio")# Set working directory
-Rcpp::sourceCpp("D:/MMM-Bio/function_real.cpp")  # Load C++ helper functions
+library("RcppArmadillo")
+
+Rcpp::sourceCpp("code/function_real.cpp")  # Load C++ helper functions
 
 # Configuration: Define MR dataset parameters 
 # Core parameters for MR dataset 
 ds_name <- "MR"               # Dataset identifier
-data_file <- "MRdata.RData"   
+data_file <- "output/MRdata.RData"   
 ds_seed <- 20250102           # Random seed for MR
 K <- 4                        # Number of cell types for MR 
 
 # Shared parameters 
 num_iter <- 10000             # Total MCMC iterations
 num_save <- 5000              # Number of iterations to retain (post-burn-in, i.e., keep last 5000)
-protein_file <- "protein_matrix.csv"  # Path to protein interaction matrix file
+protein_file <- "data/protein_matrix.csv"  # Path to protein interaction matrix file
 ssp_v0 <- 0.02                # Spike-slab prior parameters (unchanged from original)
 ssp_v1 <- 1
 ssp_l <- 1
@@ -197,7 +199,7 @@ Result <- MCMC_full(
   ssp_v0 = ssp_v0,              # Spike-slab prior v0
   ssp_v1 = ssp_v1,              # Spike-slab prior v1
   ssp_l = ssp_l,                # Spike-slab prior l
-  ssp_xi = ssp_xi,              # Spike-slab prior xi
+  ssp_xi,              # Spike-slab prior xi
   epsilon_theta = 0.2,          # Step size for theta updates
   num_step_theta = 20,          # Number of steps for theta updates
   eta_mu = 0,                   # Prior mean for mu
@@ -230,7 +232,7 @@ Pi_est <- Result$Pi_est                   # Posterior estimate of cell type prob
 theta_est <- Result$theta_est             # Posterior estimate of expression matrix
 
 # Save results (filename fixed for MR)
-result_file <- paste0(ds_name, "Data_result_with_protein.RData")
+result_file <- paste0("output/",paste0(ds_name, "Data_result_with_protein.RData"))
 save(
   list = c("X", "invcov_est", "edge_est", "group_est", "lam0_est", 
            "lam1_est", "mu_est", "Pi_est", "theta_est", "protein_mat"),
@@ -238,13 +240,6 @@ save(
 )
 cat(paste0(ds_name, " results saved to: ", result_file, "\n"))
 
-# --------------------------
-# 9. Clean up temporary variables after MR processing (avoid memory usage)
-# --------------------------
-rm(
-  X, Result, theta_t, ind_zero, mu_t, invcov_t, cov_t, edge_t, 
-  group_t, gam, pi_t, lambda0_t, lambda1_t, edge_est_mat, edge_full
-)
-cat(paste0(ds_name, " temporary variables cleaned up\n"))
+
 
 

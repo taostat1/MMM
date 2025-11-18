@@ -1,6 +1,5 @@
 rm(list=ls())  # Clear current environment variables
-setwd("F:/MMM-Bio")# Set working directory
-result_file <- "MRData_result_with_protein.RData"
+result_file <- "output/MRData_result_with_protein.RData"
 load(result_file)
 # Load required library
 library(igraph)
@@ -8,7 +7,7 @@ library(igraph)
 # --------------------------
 # 1. Generate and save protain network plots
 # --------------------------
-protein_df <- read.csv(file = "protein_matrix.csv", header = FALSE)
+protein_df <- read.csv(file = "data/protein_matrix.csv", header = FALSE)
 protein_mat <- as.matrix(protein_df)
 # Ensure matrix is numeric (binary 0/1: 0=no interaction, 1=interaction)
 protein_mat <- as.numeric(protein_mat)
@@ -36,7 +35,7 @@ plot_network <- function(edge_data, ds_name, num) {
   node_color <- rep("#EC7357", nrow(edge_data))  # Node color (orange, consistent with original settings)
   
   # Save as PDF (MR-specific filename)
-  pdf_file <- paste0(ds_name, "_edge", num, ".pdf")
+  pdf_file <- paste0("output/figure/",paste0(ds_name, "_edge", num, ".pdf"))
   pdf(file = pdf_file, width = 14, height = 12)  # Set plot dimensions
   
   # Plot network
@@ -97,11 +96,7 @@ for (k in 1:K) {
 
 # Start Timing
 library(ggplot2)
-library(gplots)    
-library(RColorBrewer)  
-# Start Timing
-library(ggplot2)
-library(gplots)    
+library(gplots)   
 library(RColorBrewer)  
 start_time <- Sys.time()
 
@@ -140,7 +135,7 @@ names(type_colors) <- levels(cell_kinds_sorted)
 row_side_colors <- type_colors[as.character(cell_kinds_sorted)]  # Colors for row sidebar
 
 # Plot and save heatmap
-pdf("MR_Expression_Heatmap.pdf", width = 12, height = 8)
+pdf("output/figure/MR_Expression_Heatmap.pdf", width = 12, height = 8)
 
 # Generate heatmap (no cell barcodes displayed)
 heatmap.2(
@@ -155,14 +150,14 @@ heatmap.2(
   key.title = "log2(Expression + 1)",  
   density.info = "none",          
   trace = "none",                 
-  margins = c(8, 4),  # 右侧边距保持较小值
+  margins = c(8, 4), 
   xlab = "Genes",                 
   ylab = "Cells",                  
-  axisRow = FALSE,    # 关键：彻底关闭行轴（包括标签和刻度）
+  axisRow = FALSE,    
   cexCol = 0.7,                    
   srtCol = 45,                     
   adjCol = c(1, 0.5),
-  labRow = FALSE     # 显式关闭行标签
+  labRow = FALSE     
 )
 
 mtext("Cells", side = 2, line = 3, cex = 1)  
@@ -185,7 +180,7 @@ dev.off()
 end_time <- Sys.time()
 execution_time <- end_time - start_time
 print(execution_time)
-# Time difference of 16.9817 mins
+# Time difference of 10.56918 mins
 
 
 
