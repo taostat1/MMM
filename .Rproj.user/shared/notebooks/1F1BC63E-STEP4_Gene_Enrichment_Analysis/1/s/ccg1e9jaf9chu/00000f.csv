@@ -1,0 +1,8 @@
+"0",""
+"0","# Ensuring vertical axis labels don't wrap is crucial—use scale_y_discrete"
+"0","bubble_plot <- dotplot(GO, split = ""ONTOLOGY"") + "
+"0","               facet_grid(ONTOLOGY ~ ., scale = ""free"", space = 'fixed') +"
+"0","               theme(axis.text.y = element_text(hjust = 1)) +"
+"0","               scale_y_discrete(labels = function(x) str_wrap(x, width = 50) )"
+"0","               # + theme(plot.margin = margin(0, 0, 0, 0))"
+"0","bubble_plot"

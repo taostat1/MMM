@@ -1,0 +1,262 @@
+"0","renv::install(""UCSC.utils"",version = ""3.22"", update = FALSE, repos = BiocManager::repositories())
+"
+"1","# Downloading packages ----------------------------------------------
+"
+"1","- Downloading UCSC.utils from BioCsoft ...      "
+"1","OK [231.3 Kb in 1.1s]
+"
+"1","Successfully downloaded 1 package in 13 seconds.
+"
+"1","
+"
+"1","The following package(s) will be installed:
+"
+"1","- UCSC.utils [1.6.0]
+"
+"1","These packages will be installed into ""D:/MMM/renv/library/windows/R-4.5/x86_64-w64-mingw32"".
+"
+"1","
+"
+"0","y"
+"1","
+"
+"1","# Installing packages -----------------------------------------------
+"
+"1","- Installing UCSC.utils ...                     "
+"1","OK [built from source and cached in 2.4s]
+"
+"1","Successfully installed 1 package in 2.6 seconds.
+"
+"0","renv::install(""GenomeInfoDb"",version = ""3.22"", update = FALSE, repos = BiocManager::repositories())# Depends on ""Seqinfo,"" ""UCSC.utils"""
+"1","# Downloading packages ----------------------------------------------
+"
+"1","- Downloading GenomeInfoDb from BioCsoft ...    "
+"1","OK [3.5 Mb in 2.1s]
+"
+"1","Successfully downloaded 1 package in 2.6 seconds.
+"
+"1","
+"
+"1","The following package(s) will be installed:
+"
+"1","- GenomeInfoDb [1.46.0]
+"
+"1","These packages will be installed into ""D:/MMM/renv/library/windows/R-4.5/x86_64-w64-mingw32"".
+"
+"1","
+"
+"0","y"
+"1","
+"
+"1","# Installing packages -----------------------------------------------
+"
+"1","- Installing GenomeInfoDb ...                   "
+"1","OK [built from source and cached in 4.6s]
+"
+"1","Successfully installed 1 package in 5.2 seconds.
+"
+"0","renv::install(""KEGGREST"", update = FALSE, repos = BiocManager::repositories())"
+"1","# Downloading packages ----------------------------------------------
+"
+"1","- Downloading KEGGREST from BioCsoft ...        "
+"1","OK [234.1 Kb in 1.1s]
+"
+"1","Successfully downloaded 1 package in 1.4 seconds.
+"
+"1","
+"
+"1","The following package(s) will be installed:
+"
+"1","- KEGGREST [1.50.0]
+"
+"1","These packages will be installed into ""D:/MMM/renv/library/windows/R-4.5/x86_64-w64-mingw32"".
+"
+"1","
+"
+"0","y"
+"1","
+"
+"1","# Installing packages -----------------------------------------------
+"
+"1","- Installing KEGGREST ...                       "
+"1","OK [built from source and cached in 4.4s]
+"
+"1","Successfully installed 1 package in 4.7 seconds.
+"
+"0","renv::install(""AnnotationDbi"", update = FALSE, repos = BiocManager::repositories())"
+"1","# Downloading packages ----------------------------------------------
+"
+"1","- Downloading AnnotationDbi from BioCsoft ...   "
+"1","OK [4.2 Mb in 3.4s]
+"
+"1","Successfully downloaded 1 package in 3.9 seconds.
+"
+"1","
+"
+"1","The following package(s) will be installed:
+"
+"1","- AnnotationDbi [1.72.0]
+"
+"1","These packages will be installed into ""D:/MMM/renv/library/windows/R-4.5/x86_64-w64-mingw32"".
+"
+"1","
+"
+"0","y"
+"1","
+"
+"1","# Installing packages -----------------------------------------------
+"
+"1","- Installing AnnotationDbi ...                  "
+"1","OK [built from source and cached in 8.9s]
+"
+"1","Successfully installed 1 package in 9.5 seconds.
+"
+"0","renv::install(c(""DOSE"", ""GO.db"", ""enrichplot""), update = FALSE, repos = BiocManager::repositories())"
+"1","# Downloading packages ----------------------------------------------
+"
+"1","- Downloading DOSE from BioCsoft ...            "
+"1","OK [5.5 Mb in 2.5s]
+"
+"1","- Downloading GO.db from BioCann ...            "
+"1","OK [24.1 Mb in 4.5s]
+"
+"1","- Downloading enrichplot from BioCsoft ...      "
+"1","OK [98 Kb in 1.0s]
+"
+"1","Successfully downloaded 3 packages in 10 seconds.
+"
+"1","
+"
+"1","The following package(s) will be installed:
+"
+"1","- DOSE       [4.4.0]
+"
+"1","- enrichplot [1.30.3]
+"
+"1","- GO.db      [3.22.0]
+"
+"1","These packages will be installed into ""D:/MMM/renv/library/windows/R-4.5/x86_64-w64-mingw32"".
+"
+"1","
+"
+"0","y"
+"1","
+"
+"1","# Installing packages -----------------------------------------------
+"
+"1","- Installing GO.db ...                          "
+"1","OK [built from source and cached in 6.3s]
+"
+"1","- Installing DOSE ...                           "
+"1","OK [built from source and cached in 11s]
+"
+"1","- Installing enrichplot ...                     "
+"1","OK [built from source and cached in 11s]
+"
+"1","Successfully installed 3 packages in 29 seconds.
+"
+"0","renv::install(""clusterProfiler"", update = FALSE, repos = BiocManager::repositories())"
+"1","# Downloading packages ----------------------------------------------
+"
+"1","- Downloading clusterProfiler from BioCsoft ... "
+"1","OK [613.5 Kb in 1.3s]
+"
+"1","Successfully downloaded 1 package in 2.4 seconds.
+"
+"1","
+"
+"1","The following package(s) will be installed:
+"
+"1","- clusterProfiler [4.18.1]
+"
+"1","These packages will be installed into ""D:/MMM/renv/library/windows/R-4.5/x86_64-w64-mingw32"".
+"
+"1","
+"
+"0","y"
+"1","
+"
+"1","# Installing packages -----------------------------------------------
+"
+"1","- Installing clusterProfiler ...                "
+"1","OK [built from source and cached in 13s]
+"
+"1","Successfully installed 1 package in 13 seconds.
+"
+"0","# Installation depends on the above packages"
+"0",""
+"0",""
+"0","# Download the Human Genome Database"
+"0","renv::install(""org.Hs.eg.db"",  repos = BiocManager::repositories())"
+"1","# Downloading packages ----------------------------------------------
+"
+"1","- Downloading org.Hs.eg.db from BioCann ...     "
+"1","OK [100.1 Mb in 7.1s]
+"
+"1","Successfully downloaded 1 package in 11 seconds.
+"
+"1","
+"
+"1","The following package(s) will be installed:
+"
+"1","- org.Hs.eg.db [3.22.0]
+"
+"1","These packages will be installed into ""D:/MMM/renv/library/windows/R-4.5/x86_64-w64-mingw32"".
+"
+"1","
+"
+"0","y"
+"1","
+"
+"1","# Installing packages -----------------------------------------------
+"
+"1","- Installing org.Hs.eg.db ...                   "
+"1","OK [built from source and cached in 9.5s]
+"
+"1","Successfully installed 1 package in 13 seconds.
+"
+"0","# Enrichment Analysis Plotting"
+"0","renv::install(""GOplot"",  repos = BiocManager::repositories())"
+"1","# Downloading packages ----------------------------------------------
+"
+"1","- Downloading GOplot from CRAN ...              "
+"1","OK [2.3 Mb in 2.9s]
+"
+"1","Successfully downloaded 1 package in 3.1 seconds.
+"
+"1","
+"
+"1","The following package(s) will be installed:
+"
+"1","- GOplot [1.0.2]
+"
+"1","These packages will be installed into ""D:/MMM/renv/library/windows/R-4.5/x86_64-w64-mingw32"".
+"
+"1","
+"
+"0","y"
+"1","
+"
+"1","# Installing packages -----------------------------------------------
+"
+"1","- Installing GOplot ...                         "
+"1","OK [installed binary and cached in 0.29s]
+"
+"1","Successfully installed 1 package in 0.56 seconds.
+"
+"0","renv::install(""enrichplot"",  repos = BiocManager::repositories())"
+"1","The following package(s) will be installed:
+"
+"1","- enrichplot [1.30.3]
+"
+"1","These packages will be installed into ""D:/MMM/renv/library/windows/R-4.5/x86_64-w64-mingw32"".
+"
+"1","
+"
+"1","# Installing packages -----------------------------------------------
+"
+"1","- Installing enrichplot ...                     "
+"1","OK [copied from cache in 0.22s]
+"
+"1","Successfully installed 1 package in 0.24 seconds.
+"

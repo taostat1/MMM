@@ -1,0 +1,4 @@
+"0","df.matrix <- makeContrasts(Treat - CK , levels = list)"
+"0","fit <- contrasts.fit(df.fit, df.matrix)"
+"0","fit <- eBayes(fit)"
+"0","tempOutput <- topTable(fit,n = Inf, adjust = ""fdr"",lfc = F)"

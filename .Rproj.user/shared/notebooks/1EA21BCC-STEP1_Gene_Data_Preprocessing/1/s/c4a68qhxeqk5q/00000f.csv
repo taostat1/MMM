@@ -1,0 +1,6 @@
+"0","padj = 0.05"
+"0","foldChange = 0.5"
+"0","# Results of screening for all differential genes"
+"0","All_diffSig <- diffsig[(diffsig$P.Value < padj&abs(diffsig$log2FC)>foldChange),]"
+"0","# Screening using uncorrected p-values"
+"0","write.csv(All_diffSig, ""../output/all.diffsig.csv"")  #Output Differentially Expressed Gene Dataset"

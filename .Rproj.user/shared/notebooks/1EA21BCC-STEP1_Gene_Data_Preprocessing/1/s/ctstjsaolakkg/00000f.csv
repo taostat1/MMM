@@ -1,0 +1,5 @@
+"0","## Export all discrepancy results"
+"0","nrDEG = na.omit(tempOutput) ## Remove rows or columns with NA in the data"
+"0","diffsig <- nrDEG "
+"0","colnames(diffsig)[2] = 'log2FC'"
+"0","head(diffsig)"

@@ -1,0 +1,4 @@
+"0",""
+"0","# Set the gene_symbol reading path"
+"0","gene_symbol <- read.csv(""../output/all.diffsig.csv"")"
+"0",""

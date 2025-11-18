@@ -1,0 +1,6 @@
+"0","#Save filtered PR data"
+"0","library(Matrix)"
+"0","X<-PR_mt"
+"0","N<-dim(X)[2]"
+"0","cell_label<-cell[cols_to_PR,""Labels""]"
+"0","save(list=c(""X"", ""N"",""cell_label""), file = ""../output/PRdata.RData"")"

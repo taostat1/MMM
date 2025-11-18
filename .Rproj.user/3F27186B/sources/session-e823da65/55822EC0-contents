@@ -1,0 +1,208 @@
+---
+title: "Gene Data Processing"
+---
+
+```{r}
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  renv::install("BiocManager")  
+}
+renv::install("limma", repos = BiocManager::repositories())
+```
+
+# Switching file addresses
+
+```{r}
+rm(list=ls()) 
+### Read mtx sparse matrices
+mt <- Matrix::readMM("../data/counts.mtx")
+dim(mt)# Rows are genes, columns are cells
+
+### Read txt file gene names as sparse matrix row names
+gene_names<- read.table("../data/gene_names.txt")
+row.names(mt) <- gene_names[,1]
+
+### Read the tsv file
+cell <- read.table("../data/annotations.tsv",header = T)
+colnames(mt) <- cell$Barcode
+```
+
+```{r}
+MR2<-cell$scater_qc.all.log10_total_features_by_counts[cell$tissue=="PR2"]
+# Load the ggplot2 library
+library(ggplot2)
+
+# Create dataframes
+data <- data.frame(MR2)
+
+# Plotting histograms
+ggplot(data, aes(x = MR2)) +
+  geom_histogram(binwidth = 0.01, fill = "skyblue", color = "black", alpha = 0.7) +
+  labs(title = "Histogram of MR2",
+       x = "MR2 values",
+       y = "Frequency")
+```
+
+```{r}
+# Load the dplyr library
+library(dplyr)
+# Use the mutate() function to add a new column PR_or_MR, assigning values based on the contents of the tissue columns
+cell <- cell %>%
+  mutate(PR_or_MR = ifelse(grepl("PR", tissue), "No", ifelse(grepl("MR", tissue), "Yes", "Other")))
+```
+
+# Differentiation analysis
+
+1. Load the required packages
+
+```{r}
+library(limma)
+library(magrittr)
+```
+
+2. Load data
+
+```{r}
+head(mt)
+```
+
+3. Annotation of sample information
+
+```{r}
+list <- c(rep("MR", 5121), rep("PR",4137),rep("PR",3444),rep("MR",3119),rep("PR",2505),rep("MR",1765)) %>% factor(., levels = c("PR", "MR"), ordered = F)
+head(list)
+list <- model.matrix(~factor(list)+0) 
+colnames(list) <- c("CK", "Treat")
+```
+
+```{r}
+df.fit <- lmFit(mt, list)  ##  Match the data to the list
+```
+
+4. Analysis of variances
+
+```{r}
+df.matrix <- makeContrasts(Treat - CK , levels = list)
+fit <- contrasts.fit(df.fit, df.matrix)
+fit <- eBayes(fit)
+tempOutput <- topTable(fit,n = Inf, adjust = "fdr",lfc = F)
+```
+
+```{r}
+head(tempOutput)
+```
+
+5. Export discrepancy results
+
+```{r}
+## Export all discrepancy results
+nrDEG = na.omit(tempOutput) ## Remove rows or columns with NA in the data
+diffsig <- nrDEG 
+colnames(diffsig)[2] = 'log2FC'
+head(diffsig)
+```
+
+6. Screening for Differential Genes Here a p-value of less than 0.05 is generally used to screen for
+
+```{r}
+padj = 0.05
+foldChange = 0.5
+# Results of screening for all differential genes
+All_diffSig <- diffsig[(diffsig$P.Value < padj&abs(diffsig$log2FC)>foldChange),]
+# Screening using uncorrected p-values
+write.csv(All_diffSig, "../output/all.diffsig.csv")  #Output Differentially Expressed Gene Dataset
+```
+
+
+7. Mapping volcanoes
+
+```{r}
+## Load R package
+library(ggplot2)
+library(ggrepel)
+
+## Classify
+logFC <- diffsig$log2FC
+deg.padj <- diffsig$P.Value
+data <- data.frame(logFC = logFC, padj = deg.padj)
+data$group[(data$padj > 0.05 | data$padj == "NA") | (data$logFC < foldChange) & data$logFC > -foldChange] <- "Not"
+data$group[(data$padj <= 0.05 & data$logFC > 1)] <-  "Up"
+data$group[(data$padj <= 0.05 & data$logFC < -1)] <- "Down"
+x_lim <- max(logFC,-logFC)
+
+# Start drawing
+pdf('../output/figure/volcano.pdf',width = 7,height = 6.5)  ## Output files
+label = subset(diffsig,P.Value <0.05 & abs(logFC) > 0.5)
+label1 = rownames(label)
+
+Significant=ifelse((diffsig$P.Value < 0.05 & abs(diffsig$log2FC)> 0.5), ifelse(diffsig$log2FC > 0.5,"Up","Down"), "Not")
+
+ggplot(diffsig, aes(log2FC, -log10(P.Value)))+
+  geom_point(aes(col=Significant))+
+  scale_color_manual(values=c("#0072B5","grey","#BC3C28"))+
+  labs(title = " ")+
+  geom_vline(xintercept=c(-0.5,0.5), colour="black", linetype="dashed")+
+  geom_hline(yintercept = -log10(0.05),colour="black", linetype="dashed")+
+  theme(plot.title = element_text(size = 16, hjust = 0.5, face = "bold"))+
+  labs(x="log2(FoldChange)",y="-log10(Pvalue)")+
+  theme(axis.text=element_text(size=13),axis.title=element_text(size=13))+theme_bw()
+dev.off()
+```
+# Goal gene data processing 
+1. Screening for goal genes
+```{r}
+diff_genes_row <- row.names(diffsig[diffsig$P.Value < padj & abs(diffsig$log2FC) > foldChange,])
+diff_genes_row
+goal_gene<-diffsig[diff_genes_row,"ID"]
+goal_gene_mt<-mt[goal_gene,]
+row.names(goal_gene_mt)
+```
+
+2. Remove cells with >50% zeros in marker genes
+
+```{r}
+# Calculate the proportion of values of 0 in each column
+zero_percent <- apply(goal_gene_mt, 2, function(x) mean(x == 0))
+write.csv(zero_percent, "../output/Zero_percent.csv")
+# Determine if the overall 50% threshold is exceeded
+threshold <- 0.5
+cols_to_keep <- which(zero_percent <= threshold)
+cell_type<-cell[cols_to_keep,"Labels"]
+cell_MR<-cell[cols_to_keep,"PR_or_MR"]
+cols_to_MR<-which(cell$PR_or_MR=="Yes"&zero_percent <= threshold)
+cols_to_PR<-which(cell$PR_or_MR=="No"&zero_percent <= threshold)
+save(list=c("goal_gene_mt","goal_gene","mt","cell","cols_to_MR","cols_to_PR"), file = "../output/goal_gene_mt.RData")
+# Combine the remaining columns into a new data frame
+new_mt <- goal_gene_mt[, cols_to_keep]
+MR_mt<-goal_gene_mt[, cols_to_MR]
+PR_mt<-goal_gene_mt[, cols_to_PR]
+```
+
+```{r}
+hist(zero_percent)
+```
+
+
+```{r}
+# Save the filtered totals
+library(Matrix)
+X<-as.data.frame(as.matrix(new_mt))
+write.csv(X, "../output/col_keep_data.csv")
+```
+
+```{r}
+#Save filtered MR data
+library(Matrix)
+X<-MR_mt
+N<-dim(X)[2]
+cell_label<-cell[cols_to_MR,"Labels"]
+save(list=c("X", "N","cell_label"), file = "../output/MRdata.RData")
+```
+
+```{r}
+#Save filtered PR data
+library(Matrix)
+X<-PR_mt
+N<-dim(X)[2]
+cell_label<-cell[cols_to_PR,"Labels"]
+save(list=c("X", "N","cell_label"), file = "../output/PRdata.RData")
+```

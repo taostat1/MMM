@@ -1,3 +1,2 @@
 *.mtx filter=lfs diff=lfs merge=lfs -text
-*.rds filter=lfs diff=lfs merge=lfs -text
 data/counts.mtx filter=lfs diff=lfs merge=lfs -text

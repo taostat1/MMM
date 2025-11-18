@@ -1,0 +1,8 @@
+"0",""
+"0","# Set as Human Genome Database"
+"0","GO_database <- 'org.Hs.eg.db' "
+"0",""
+"0","# Begin converting SYMBOL to ENTREZID"
+"0","gene <- bitr(gene_symbol$ID,fromType = 'SYMBOL',toType = 'ENTREZID',"
+"0","             OrgDb = GO_database)"
+"0",""

@@ -1,0 +1,4 @@
+"0","# Save the filtered totals"
+"0","library(Matrix)"
+"0","X<-as.data.frame(as.matrix(new_mt))"
+"0","write.csv(X, ""../output/col_keep_data.csv"")"

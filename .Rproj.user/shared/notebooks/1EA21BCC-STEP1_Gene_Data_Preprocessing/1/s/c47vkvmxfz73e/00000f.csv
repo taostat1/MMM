@@ -1,0 +1,5 @@
+"0","# Load the dplyr library"
+"0","library(dplyr)"
+"0","# Use the mutate() function to add a new column PR_or_MR, assigning values based on the contents of the tissue columns"
+"0","cell <- cell %>%"
+"0","  mutate(PR_or_MR = ifelse(grepl(""PR"", tissue), ""No"", ifelse(grepl(""MR"", tissue), ""Yes"", ""Other"")))"

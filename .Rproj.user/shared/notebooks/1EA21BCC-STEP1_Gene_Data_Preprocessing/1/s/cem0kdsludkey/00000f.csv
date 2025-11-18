@@ -1,0 +1,6 @@
+"0","#Save filtered MR data"
+"0","library(Matrix)"
+"0","X<-MR_mt"
+"0","N<-dim(X)[2]"
+"0","cell_label<-cell[cols_to_MR,""Labels""]"
+"0","save(list=c(""X"", ""N"",""cell_label""), file = ""../output/MRdata.RData"")"
